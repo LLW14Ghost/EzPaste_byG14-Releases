@@ -1,0 +1,72 @@
+# Builds EzPaste on a Windows machine at GitHub, so no local Python setup is needed.
+# Runs when an EzPasteV*.py file changes on main, or by hand (Actions tab → Build EzPaste (Windows) → Run workflow).
+# Result: an "EzPaste-<version>" download on the run's page with EzPaste.exe (portable: put it in the
+# folder with your data files) and, once installer/EzPaste.iss exists, EzPaste_Setup_<version>.exe.
+# Nothing is published: making a release stays a manual step.
+name: Build EzPaste (Windows)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["EzPasteV*.py", "installer/**", ".github/workflows/build-windows.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Find the newest EzPasteV*.py and its version
+        id: src
+        shell: pwsh
+        run: |
+          $f = Get-ChildItem EzPasteV*.py | Sort-Object Name | Select-Object -Last 1
+          $v = (Select-String -Path $f -Pattern '^APP_VERSION = "(v[0-9.]+)"').Matches[0].Groups[1].Value
+          "file=$($f.Name)" >> $env:GITHUB_OUTPUT
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Building $($f.Name) ($v)"
+
+      - name: Install packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller customtkinter pystray pillow certifi keyring keyboard
+
+      - name: Build EzPaste.exe
+        shell: pwsh
+        run: |
+          $icon = @()
+          if (Test-Path installer/EzPaste.ico) { $icon = @("--icon", "installer/EzPaste.ico") }
+          pyinstaller --noconfirm --onefile --windowed --name EzPaste --collect-data customtkinter @icon ${{ steps.src.outputs.file }}
+
+      - name: Build the installer (when installer/EzPaste.iss exists)
+        shell: pwsh
+        run: |
+          if (Test-Path installer/EzPaste.iss) {
+            $ver = "${{ steps.src.outputs.version }}".TrimStart("v")
+            & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$ver" "/DSourceExe=$PWD\dist\EzPaste.exe" "/O$PWD\dist" installer/EzPaste.iss
+          } else {
+            Write-Host "installer/EzPaste.iss not in the repo yet: skipping the installer"
+          }
+
+      - name: SHA-256 of each file
+        shell: pwsh
+        run: |
+          Get-ChildItem dist/*.exe | ForEach-Object {
+            (Get-FileHash $_ -Algorithm SHA256).Hash.ToLower() + "  " + $_.Name | Out-File -Encoding ascii "$($_.FullName).sha256"
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: EzPaste-${{ steps.src.outputs.version }}
+          path: |
+            dist/*.exe
+            dist/*.sha256
+          retention-days: 30
