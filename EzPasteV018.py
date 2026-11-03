@@ -43,7 +43,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Constants & paths
 # ---------------------------------------------------------------------------
-APP_VERSION = "v0.1.7"
+APP_VERSION = "v0.1.8"
 
 # ---------------------------------------------------------------------------
 # Language support: every UI label lives here as (English, 中文).
@@ -59,8 +59,20 @@ STRINGS = {
     "tray_exit": ("Exit Completely", "完全退出程序"),
     "tray_tooltip": ("EzPaste Quick Reply Assistant", "EzPaste 快捷回复助手"),
     "tray_notify_title": ("Background Running", "后台运行中"),
-    "tray_notify_msg": ("EzPaste minimized to system tray. Click tray icon to restore.",
-                        "EzPaste 已最小化到系统托盘，点击托盘图标即可还原。"),
+    "tray_notify_msg": ("EzPaste is put away. Click its taskbar button or tray icon to bring it back.",
+                        "EzPaste 已收起，点击任务栏按钮或托盘图标即可还原。"),
+    "tray_ask_close": ("Ask what [X] does", "询问 [X] 的操作"),
+    # --- close / put away ---
+    "close_title": ("Close EzPaste", "关闭 EzPaste"),
+    "close_question": ("What should [X] do?", "点击 [X] 时要怎么做？"),
+    "close_away": ("📥 Put away\n(taskbar + tray)", "📥 收起\n（任务栏 + 托盘）"),
+    "close_quit": ("⏻ Quit EzPaste", "⏻ 退出 EzPaste"),
+    "close_remember": ("Remember my choice", "记住我的选择"),
+    "close_reset_done": ("[X] will ask again next time.", "下次点击 [X] 时会再次询问。"),
+    "dc_close_reset": ("❔ Ask Again What [X] Does", "❔ 重新询问 [X] 的操作"),
+    "tab_show": ("Show EzPaste", "显示 EzPaste"),
+    "tab_away": ("Put away", "收起"),
+    "tab_quit": ("Quit (Ctrl+Q)", "退出 (Ctrl+Q)"),
     # --- generic ---
     "success": ("Success", "成功"),
     "error": ("Error", "错误"),
@@ -221,8 +233,12 @@ STRINGS = {
         "2. 【Search】\n"
         "   - Use the search box at the bottom to find a reply by name or text across all categories. "
         "Press Esc to clear.\n\n"
-        "3. 【System Tray & Hotkey】\n"
-        "   - Clicking [X] minimizes the app to the system tray. Right-click the tray icon to exit.\n"
+        "3. 【Screen Edge, [X], Tray & Hotkey】\n"
+        "   - Drag the window to the right edge of your screen: it tucks away when the mouse leaves. "
+        "Rest the mouse on the edge (or click the blue tab) to bring it back; right-click the tab for more.\n"
+        "   - [X] asks: put away (taskbar + tray) or quit. Tick 'Remember my choice' to skip the question; "
+        "Data Center or the tray menu lets it ask again.\n"
+        "   - Ctrl+Q quits at once. EzPaste stays out of Alt+Tab and the taskbar while it is open.\n"
         "{hotkey_line}\n"
         "4. 【Theme & Language】\n"
         "   - Use the Theme and language buttons at the bottom right to switch light/dark mode "
@@ -232,8 +248,10 @@ STRINGS = {
         "   - 新建分类时可选择【个人本地】（仅保存在本机，永不上传）或【公共云端】（通过仓库与团队共享）。\n\n"
         "2. 【搜索】\n"
         "   - 使用底部搜索框，可跨所有分类按名称或内容查找回复，按 Esc 清空搜索。\n\n"
-        "3. 【系统托盘与快捷键】\n"
-        "   - 点击 [X] 会最小化到系统托盘，右键托盘图标可完全退出。\n"
+        "3. 【贴边、[X]、托盘与快捷键】\n"
+        "   - 把窗口拖到屏幕右边缘：鼠标离开后会自动收起。鼠标停在边缘（或点击蓝色标签）即可展开，右键标签有更多选项。\n"
+        "   - 点击 [X] 时会询问：收起（任务栏 + 托盘）或退出。勾选“记住我的选择”后不再询问；可在数据管理中心或托盘菜单中恢复询问。\n"
+        "   - 按 Ctrl+Q 立即退出。窗口打开时不会出现在 Alt+Tab 和任务栏中。\n"
         "{hotkey_line}\n"
         "4. 【主题与语言】\n"
         "   - 使用右下角的主题按钮和语言按钮，可切换浅色/深色模式与 English/中文 界面。"
@@ -244,6 +262,14 @@ STRINGS = {
     "changelog_heading": ("📜 EzPaste Version Change History", "📜 EzPaste 版本更新日志"),
     "changelog_body": (
         "【Current Version: {version}】\n"
+        " - Switching light / dark no longer makes the window vanish and reappear like a restart.\n"
+        " - Screen-edge hiding rebuilt: minimizing, Win+D and Alt+Tab no longer stop it from working.\n"
+        " - Fixed the window growing each time it slid in or out on screens with display scaling above 100%.\n"
+        " - Slides out only when the mouse rests on the edge for a moment; smoother slide; docks only on an outer screen edge (multi-monitor).\n"
+        " - Out of Alt+Tab / Win+Tab and the taskbar while open; a taskbar button appears while it is put away.\n"
+        " - [X] asks: put away or quit, with 'Remember my choice'. Ctrl+Q quits; right-click the blue tab for a menu.\n"
+        " - Faster reply list: cards are reused instead of rebuilt on every search, category switch or resize.\n\n"
+        "【Version: v0.1.7】\n"
         " - New Update now button: EzPaste downloads the installer, verifies its SHA-256 hash, installs silently and reopens itself.\n"
         " - Fixed the window retracting to the screen edge too easily, even with the mouse inside it.\n"
         " - The docked window now waits briefly before retracting and never retracts during dialogs, dragging, or while a search is active.\n\n"
@@ -266,6 +292,14 @@ STRINGS = {
         "【Version: v0.1.3】\n"
         " - Added secure GitHub private repo API support.",
         "【当前版本：{version}】\n"
+        " - 切换浅色/深色时，窗口不再像重启一样消失再出现。\n"
+        " - 重做贴边隐藏：最小化、Win+D、Alt+Tab 后不会再失效。\n"
+        " - 修复在显示缩放大于 100% 的屏幕上，窗口每次滑入滑出都会变大的问题。\n"
+        " - 鼠标需在边缘停留片刻才会展开；滑动更顺滑；多显示器时只在最外侧边缘贴边。\n"
+        " - 窗口打开时不出现在 Alt+Tab / Win+Tab 和任务栏；收起时显示任务栏按钮。\n"
+        " - 点击 [X] 可选择收起或退出，并可“记住我的选择”。Ctrl+Q 退出；右键蓝色标签有菜单。\n"
+        " - 回复列表更快：搜索、切换分类、调整大小时复用卡片，不再全部重建。\n\n"
+        "【版本：v0.1.7】\n"
         " - 新增“立即更新”按钮：自动下载安装程序，校验 SHA-256 哈希，静默安装并自动重新打开。\n"
         " - 修复窗口贴边后过于灵敏、鼠标仍在窗口内也会收起的问题。\n"
         " - 贴边窗口现在会稍作等待再收起，并且在弹窗、拖动窗口或使用搜索时不会收起。\n\n"
@@ -311,6 +345,8 @@ DEV_SIGNATURE = "Developed by G14"
 HOTKEY = "ctrl+alt+e"
 EDGE_HIDE_DELAY = 0.8  # seconds the mouse must stay outside before the docked window retracts
 EDGE_MARGIN = 12  # extra pixels around the window that still count as "inside"
+PEEK_DELAY = 0.25  # seconds the mouse must rest at the screen edge before a tucked window slides out
+EDGE_TAB_PX = 14  # width of the blue tab left on screen while the window is tucked away
 
 # Data lives next to the script / exe (same place as before), no matter
 # which directory the app is launched from.
@@ -605,6 +641,128 @@ def center_window_on_parent(window, parent, width, height):
     window.geometry(f"{width}x{height}+{x}+{y}")
 
 
+# --- Windows window helpers --------------------------------------------------
+class _MonitorInfo(ctypes.Structure):
+    _fields_ = [("cbSize", ctypes.c_uint32), ("rcMonitor", ctypes.c_long * 4),
+                ("rcWork", ctypes.c_long * 4), ("dwFlags", ctypes.c_uint32)]
+
+
+class WinAPI:
+    """Small ctypes layer for the main window (Windows only). Every call fails soft: on any
+    error, or on another OS, it returns None / False and the caller uses its Tk fallback."""
+
+    def __init__(self):
+        self.ok = False
+        if sys.platform != "win32":
+            return
+        try:
+            from ctypes import wintypes as w
+            u = ctypes.WinDLL("user32", use_last_error=True)  # private copy, shared prototypes untouched
+            u.GetParent.argtypes = [w.HWND]
+            u.GetParent.restype = w.HWND
+            u.GetWindowRect.argtypes = [w.HWND, ctypes.POINTER(w.RECT)]
+            u.GetWindowRect.restype = w.BOOL
+            u.MonitorFromWindow.argtypes = [w.HWND, w.DWORD]
+            u.MonitorFromWindow.restype = w.HMONITOR
+            u.MonitorFromPoint.argtypes = [w.POINT, w.DWORD]
+            u.MonitorFromPoint.restype = w.HMONITOR
+            u.GetMonitorInfoW.argtypes = [w.HMONITOR, ctypes.POINTER(_MonitorInfo)]
+            u.GetMonitorInfoW.restype = w.BOOL
+            u.SetWindowPos.argtypes = [w.HWND, w.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                                       w.UINT]
+            u.SetWindowPos.restype = w.BOOL
+            u.SendMessageW.argtypes = [w.HWND, w.UINT, w.WPARAM, w.LPARAM]
+            u.SendMessageW.restype = ctypes.c_ssize_t
+            u.GetForegroundWindow.argtypes = []
+            u.GetForegroundWindow.restype = w.HWND
+            u.GetAsyncKeyState.argtypes = [ctypes.c_int]
+            u.GetAsyncKeyState.restype = ctypes.c_short
+            self.u, self.w = u, w
+            try:
+                d = ctypes.WinDLL("dwmapi")
+                d.DwmSetWindowAttribute.argtypes = [w.HWND, w.DWORD, ctypes.c_void_p, w.DWORD]
+                d.DwmSetWindowAttribute.restype = ctypes.c_long
+                self.dwm = d
+            except Exception:
+                self.dwm = None
+            self.ok = True
+        except Exception:
+            log.exception("WinAPI setup failed")
+
+    def outer_hwnd(self, widget):
+        """The window Windows actually draws (title bar included) for a Tk toplevel."""
+        if not self.ok:
+            return None
+        try:
+            return self.u.GetParent(widget.winfo_id()) or widget.winfo_id()
+        except Exception:
+            return None
+
+    def window_rect(self, hwnd):
+        if not (self.ok and hwnd):
+            return None
+        r = self.w.RECT()
+        if self.u.GetWindowRect(hwnd, ctypes.byref(r)):
+            return r.left, r.top, r.right, r.bottom
+        return None
+
+    def _info(self, hmon):
+        if not hmon:
+            return None
+        info = _MonitorInfo()
+        info.cbSize = ctypes.sizeof(_MonitorInfo)
+        if self.u.GetMonitorInfoW(hmon, ctypes.byref(info)):
+            return tuple(info.rcMonitor), tuple(info.rcWork)
+        return None
+
+    def monitor_of_window(self, hwnd):
+        """(monitor rect, work-area rect) of the screen the window is mostly on."""
+        if not (self.ok and hwnd):
+            return None
+        try:
+            return self._info(self.u.MonitorFromWindow(hwnd, 2))  # MONITOR_DEFAULTTONEAREST
+        except Exception:
+            return None
+
+    def monitor_at(self, x, y):
+        """True if some screen contains the point (x, y)."""
+        if not self.ok:
+            return False
+        try:
+            return bool(self.u.MonitorFromPoint(self.w.POINT(int(x), int(y)), 0))  # MONITOR_DEFAULTTONULL
+        except Exception:
+            return False
+
+    def left_button_down(self):
+        if not self.ok:
+            return False
+        try:
+            return bool(self.u.GetAsyncKeyState(0x01) & 0x8000)
+        except Exception:
+            return False
+
+    def set_dark_titlebar(self, hwnd, dark):
+        """Recolour the title bar in place. CustomTkinter does this by hiding and re-showing the
+        whole window, which looked like the app closing and reopening; we only repaint the frame."""
+        if not (self.ok and hwnd and self.dwm):
+            return
+        try:
+            value = ctypes.c_int(1 if dark else 0)
+            for attr in (20, 19):  # DWMWA_USE_IMMERSIVE_DARK_MODE, then the pre-20H1 number
+                if self.dwm.DwmSetWindowAttribute(hwnd, attr, ctypes.byref(value), ctypes.sizeof(value)) == 0:
+                    break
+            # SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
+            self.u.SetWindowPos(hwnd, None, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0004 | 0x0010 | 0x0020)
+            active = 1 if self.u.GetForegroundWindow() == hwnd else 0
+            self.u.SendMessageW(hwnd, 0x0086, 1 - active, 0)  # WM_NCACTIVATE: flip, then back,
+            self.u.SendMessageW(hwnd, 0x0086, active, 0)  # so Windows repaints the title bar now
+        except Exception:
+            log.exception("Title bar recolour failed")
+
+
+WIN = WinAPI()
+
+
 # --- Single instance (Windows) ---------------------------------------------
 _MUTEX_HANDLE = None
 
@@ -806,6 +964,33 @@ class ScopeDialog(ThemedDialog):
         self.wait_window()
 
 
+class CloseChoiceDialog(ThemedDialog):
+    """Asked when [X] is clicked. Result: ("away" | "quit", remember: bool) or None (cancelled)."""
+
+    def __init__(self, parent, is_light):
+        super().__init__(parent, tr("close_title"), 360, 190, is_light)
+        t = self.t
+        ctk.CTkLabel(self, text=tr("close_question"), font=("Microsoft YaHei", 12, "bold"),
+                     text_color=t["text"]).pack(pady=(15, 8))
+        frame = ctk.CTkFrame(self, fg_color="transparent")
+        frame.pack(padx=20, pady=4, fill=ctk.X)
+        self.remember = tk.BooleanVar(value=False)
+        away = ctk.CTkButton(frame, text=tr("close_away"), width=150, height=48,
+                             font=("Microsoft YaHei", 10, "bold"), fg_color="#2563eb", hover_color="#1d4ed8",
+                             command=lambda: self.finish(("away", self.remember.get())))
+        away.pack(side=ctk.LEFT, padx=5)
+        ctk.CTkButton(frame, text=tr("close_quit"), width=150, height=48,
+                      font=("Microsoft YaHei", 10, "bold"), fg_color=t["danger"], text_color=t["danger_text"],
+                      hover_color=t["danger_hover"],
+                      command=lambda: self.finish(("quit", self.remember.get()))).pack(side=ctk.RIGHT, padx=5)
+        ctk.CTkCheckBox(self, text=tr("close_remember"), variable=self.remember, font=("Microsoft YaHei", 10),
+                        text_color=t["text"], checkbox_width=18, checkbox_height=18).pack(pady=(12, 0))
+        self.bind("<Escape>", lambda e: self.cancel())
+        self.bind("<Return>", lambda e: self.finish(("away", self.remember.get())))
+        away.focus_set()
+        self.wait_window()
+
+
 # ---------------------------------------------------------------------------
 # Main application
 # ---------------------------------------------------------------------------
@@ -884,8 +1069,8 @@ class FastCopyApp:
         # Thread -> UI hand-off (tkinter must only be touched from the main thread)
         self.ui_queue = queue.Queue()
         self._modal_count = 0  # > 0 while a dialog or message box is open (never retract then)
-        self._outside_since = None
-        self._last_toggle = 0.0
+        self._card_cache = {}  # (category, reply name) -> reusable reply card widgets
+        self._no_results_label = None
         self.right_click_event = "<Button-2>" if self.root.tk.call("tk", "windowingsystem") == "aqua" else "<Button-3>"
 
         self.is_light_mode = self.load_user_preferences()
@@ -909,15 +1094,11 @@ class FastCopyApp:
         self.setup_ui()
         self.apply_theme_colors()
 
-        self.screen_width = self.root.winfo_screenwidth()
-        self.is_hidden = False
-        self.is_animating = False
-        self.visible_pixel = 14
-
-        self.setup_indicator()
-        self.start_edge_check_loop()
+        self.setup_window_states()
 
         self.root.protocol("WM_DELETE_WINDOW", self.on_close_window)
+        self.root.bind_all("<Control-q>", lambda e: self._quit())
+        self.root.bind_all("<Control-Q>", lambda e: self._quit())
         self.tray_icon = None
         self.setup_system_tray()
         self.setup_hotkey()
@@ -1000,14 +1181,16 @@ class FastCopyApp:
     # --- preferences / data persistence ----------------------------------
     def load_user_preferences(self):
         prefs = load_json_file(PREFS_FILE)
-        if isinstance(prefs, dict):
-            set_language(prefs.get("language", "en"))
-            return prefs.get("theme_mode", "dark") == "light"
-        return False
+        self.prefs = prefs if isinstance(prefs, dict) else {}
+        if self.prefs.get("close_action") not in ("away", "quit"):
+            self.prefs.pop("close_action", None)  # unknown value: ask again
+        set_language(self.prefs.get("language", "en"))
+        return self.prefs.get("theme_mode", "dark") == "light"
 
     def save_user_preferences(self):
         try:
-            atomic_write_json(PREFS_FILE, {"theme_mode": "light" if self.is_light_mode else "dark", "language": LANG})
+            self.prefs.update({"theme_mode": "light" if self.is_light_mode else "dark", "language": LANG})
+            atomic_write_json(PREFS_FILE, self.prefs)
         except Exception:
             log.exception("Saving preferences failed")
 
@@ -1045,6 +1228,8 @@ class FastCopyApp:
         def run_tray():
             menu = pystray.Menu(
                 pystray.MenuItem(lambda item: tr("tray_restore"), self.restore_from_tray, default=True),
+                pystray.MenuItem(lambda item: tr("tray_ask_close"), lambda icon, item: self.post(self.reset_close_choice),
+                                 visible=lambda item: "close_action" in self.prefs),
                 pystray.MenuItem(lambda item: tr("tray_exit"), self.exit_completely),
             )
             self.tray_icon = pystray.Icon("EzPaste", self.create_tray_image(),
@@ -1061,20 +1246,56 @@ class FastCopyApp:
         except Exception:
             log.exception("Could not register hotkey")
 
-    def _toggle_visibility(self):
-        if self.root.state() == "withdrawn":
+    def _toggle_visibility(self):  # global hotkey
+        if self.mode == "away" or self.root.state() in ("withdrawn", "iconic"):
             self._do_restore()
-        elif self.is_hidden:
-            self.animate_show()
+        elif self.mode == "tucked":
+            self.show_from_edge()
         else:
-            self.root.withdraw()
+            self.put_away(taskbar=False)  # quick hide: tray only, the hotkey brings it back
 
     def on_close_window(self):
-        self.root.withdraw()
-        if self.tray_icon:
+        """[X]: put away or quit, as chosen (and optionally remembered) by the user."""
+        choice = self.prefs.get("close_action")
+        if choice is None:
+            self._modal_count += 1
             try:
-                self.tray_icon.notify(tr("tray_notify_msg"),
-                                      tr("tray_notify_title"))
+                self.root.attributes("-topmost", False)
+                answer = CloseChoiceDialog(self.root, self.is_light_mode).result
+            finally:
+                self._modal_count -= 1
+                self.toggle_on_top()
+            if not answer:
+                return
+            choice, remember = answer
+            if remember:
+                self.prefs["close_action"] = choice
+                self.save_user_preferences()
+                self._refresh_tray_menu()
+        if choice == "quit":
+            self._quit()
+            return
+        first_time = not self.prefs.get("away_notified")
+        self.put_away(taskbar=True)
+        if first_time and self.tray_icon:  # explain once where it went, not every time
+            self.prefs["away_notified"] = True
+            self.save_user_preferences()
+            try:
+                self.tray_icon.notify(tr("tray_notify_msg"), tr("tray_notify_title"))
+            except Exception:
+                pass
+
+    def reset_close_choice(self):
+        self.prefs.pop("close_action", None)
+        self.save_user_preferences()
+        self._refresh_tray_menu()
+        if self.mode != "away":
+            self._msg("info", tr("close_title"), tr("close_reset_done"))
+
+    def _refresh_tray_menu(self):
+        if self.tray_icon is not None:
+            try:
+                self.tray_icon.update_menu()
             except Exception:
                 pass
 
@@ -1082,12 +1303,15 @@ class FastCopyApp:
         self.post(self._do_restore)
 
     def _do_restore(self):
+        if self.mode == "tucked":
+            self.show_from_edge()
+            return
         self.root.deiconify()
+        if self.mode == "away":
+            self._return_from_away()
         self.root.lift()
         self.root.focus_force()
         self.toggle_on_top()
-        if self.is_hidden:
-            self.animate_show()
         try:
             self.search_entry.focus_set()
         except Exception:
@@ -1588,6 +1812,7 @@ class FastCopyApp:
         self.top_frame.configure(fg_color=t["bar"])
         self.btn_data_center.configure(text_color="#ffffff")
         self.btn_help.configure(text_color="#ffffff")
+        self.apply_titlebar_theme()
 
         self.refresh_left_menu()
         self.refresh_right_buttons()
@@ -1669,9 +1894,9 @@ class FastCopyApp:
         return entries
 
     def refresh_right_buttons(self):
-        for w in self.right_scroll.winfo_children():
-            w.destroy()
-
+        """Show the reply cards for the current category or search. Cards are kept and reused:
+        building CustomTkinter widgets is slow, so search, category switches and resizing only
+        rearrange existing cards and build the ones that are new or changed."""
         light = self.is_light_mode
         t = self.theme
         searching = bool(self.search_query.strip())
@@ -1685,39 +1910,21 @@ class FastCopyApp:
                     pass
 
         entries = self._visible_entries()
-        if searching and not entries:
-            ctk.CTkLabel(self.right_scroll, text=tr("no_results"),
-                         font=("Microsoft YaHei", 12), text_color=t["muted"]).grid(row=0, column=0, padx=20, pady=30)
-            return
+        if self._no_results_label is not None:
+            self._no_results_label.grid_forget()
 
+        wanted = set()
         cols = self.current_columns
+        show_arrows = self.is_edit_mode and not searching
         for index, (cat, btn_name, btn_info) in enumerate(entries):
             text_content = btn_info["text"]
             dark_c = valid_hex(btn_info.get("dark_color"), DEFAULT_ITEM_DARK)
             light_c = valid_hex(btn_info.get("light_color"), DEFAULT_ITEM_LIGHT)
-
             if light:
-                bg_color, hover_color = light_c, "#eae2cf"
-                title_text_color, sub_text_color = "#2c2c2c", "#666666"
+                colors = (light_c, "#eae2cf", "#2c2c2c", "#666666")
             else:
-                bg_color = adjust_brightness(dark_c, 0.6)
-                hover_color = adjust_brightness(dark_c, 0.8)
-                title_text_color, sub_text_color = "#ffffff", "#bfc7d5"
-
-            card_frame = ctk.CTkFrame(self.right_scroll, fg_color="transparent", width=280, height=95)
-            card_frame.grid(row=index // cols, column=index % cols, padx=12, pady=12)
-            card_frame.grid_propagate(False)
-
-            show_arrows = self.is_edit_mode and not searching
-            btn = ctk.CTkButton(card_frame, text="", fg_color=bg_color, hover_color=hover_color,
-                                width=225 if show_arrows else 265, height=90, corner_radius=12,
-                                border_width=1, border_color=t["border"],
-                                command=lambda tx=text_content: self.copy_to_clipboard(tx))
-            btn.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
-
-            label_title = ctk.CTkLabel(btn, text=f"【{btn_name}】", font=("Microsoft YaHei", 12, "bold"),
-                                       text_color=title_text_color)
-            label_title.place(relx=0.5, rely=0.3, anchor="center")
+                colors = (adjust_brightness(dark_c, 0.6), adjust_brightness(dark_c, 0.8), "#ffffff", "#bfc7d5")
+            look = (text_content, colors, t["border"], t["arrow_bg"], t["arrow_text"], show_arrows)
 
             if searching:
                 hint_txt = f"📂 {cat}"
@@ -1725,28 +1932,75 @@ class FastCopyApp:
                 hint_txt = tr("edit_active")
             else:
                 hint_txt = tr("click_copy")
-            label_sub = ctk.CTkLabel(btn, text=hint_txt, font=("Microsoft YaHei", 10), text_color=sub_text_color)
-            label_sub.place(relx=0.5, rely=0.68, anchor="center")
 
-            if show_arrows:
-                arrow_bar = ctk.CTkFrame(card_frame, fg_color="transparent", width=32)
-                arrow_bar.pack(side=ctk.LEFT, fill=ctk.Y, padx=(4, 0))
-                ctk.CTkButton(arrow_bar, text="▲", width=32, height=43, font=("Arial", 10, "bold"),
-                              fg_color=t["arrow_bg"], text_color=t["arrow_text"], corner_radius=6,
-                              command=lambda name=btn_name: self.move_reply(name, "up")
-                              ).pack(side=ctk.TOP, pady=(0, 2))
-                ctk.CTkButton(arrow_bar, text="▼", width=32, height=43, font=("Arial", 10, "bold"),
-                              fg_color=t["arrow_bg"], text_color=t["arrow_text"], corner_radius=6,
-                              command=lambda name=btn_name: self.move_reply(name, "down")
-                              ).pack(side=ctk.TOP)
+            key = (cat, btn_name)
+            card = self._card_cache.get(key)
+            if card is None or card["look"] != look:
+                if card is not None:
+                    card["frame"].destroy()
+                card = self._build_card(cat, btn_name, text_content, colors, show_arrows, hint_txt)
+                card["look"] = look
+                self._card_cache[key] = card
+            elif card["hint"] != hint_txt:
+                card["sub"].configure(text=hint_txt)
+                card["hint"] = hint_txt
+            card["frame"].grid(row=index // cols, column=index % cols, padx=12, pady=12)
+            wanted.add(key)
 
-            def on_right(event, name=btn_name, c=cat):
-                self.show_reply_popup_panel(event, name, c)
+        for key, card in list(self._card_cache.items()):
+            if key in wanted:
+                continue
+            cat, name = key
+            if cat not in self.data or name not in self.data[cat]["items"]:  # deleted or renamed
+                card["frame"].destroy()
+                del self._card_cache[key]
+            else:
+                card["frame"].grid_forget()
 
-            for w in (btn, label_title, label_sub):
-                w.bind(self.right_click_event, on_right)
-            label_title.bind("<Button-1>", lambda event, tx=text_content: self.copy_to_clipboard(tx))
-            label_sub.bind("<Button-1>", lambda event, tx=text_content: self.copy_to_clipboard(tx))
+        if searching and not entries:
+            if self._no_results_label is None:
+                self._no_results_label = ctk.CTkLabel(self.right_scroll, text="", font=("Microsoft YaHei", 12))
+            self._no_results_label.configure(text=tr("no_results"), text_color=t["muted"])
+            self._no_results_label.grid(row=0, column=0, padx=20, pady=30)
+
+    def _build_card(self, cat, btn_name, text_content, colors, show_arrows, hint_txt):
+        bg_color, hover_color, title_text_color, sub_text_color = colors
+        t = self.theme
+        card_frame = ctk.CTkFrame(self.right_scroll, fg_color="transparent", width=280, height=95)
+        card_frame.grid_propagate(False)
+
+        btn = ctk.CTkButton(card_frame, text="", fg_color=bg_color, hover_color=hover_color,
+                            width=225 if show_arrows else 265, height=90, corner_radius=12,
+                            border_width=1, border_color=t["border"],
+                            command=lambda tx=text_content: self.copy_to_clipboard(tx))
+        btn.pack(side=ctk.LEFT, fill=ctk.BOTH, expand=True)
+
+        label_title = ctk.CTkLabel(btn, text=f"【{btn_name}】", font=("Microsoft YaHei", 12, "bold"),
+                                   text_color=title_text_color)
+        label_title.place(relx=0.5, rely=0.3, anchor="center")
+        label_sub = ctk.CTkLabel(btn, text=hint_txt, font=("Microsoft YaHei", 10), text_color=sub_text_color)
+        label_sub.place(relx=0.5, rely=0.68, anchor="center")
+
+        if show_arrows:
+            arrow_bar = ctk.CTkFrame(card_frame, fg_color="transparent", width=32)
+            arrow_bar.pack(side=ctk.LEFT, fill=ctk.Y, padx=(4, 0))
+            ctk.CTkButton(arrow_bar, text="▲", width=32, height=43, font=("Arial", 10, "bold"),
+                          fg_color=t["arrow_bg"], text_color=t["arrow_text"], corner_radius=6,
+                          command=lambda name=btn_name: self.move_reply(name, "up")
+                          ).pack(side=ctk.TOP, pady=(0, 2))
+            ctk.CTkButton(arrow_bar, text="▼", width=32, height=43, font=("Arial", 10, "bold"),
+                          fg_color=t["arrow_bg"], text_color=t["arrow_text"], corner_radius=6,
+                          command=lambda name=btn_name: self.move_reply(name, "down")
+                          ).pack(side=ctk.TOP)
+
+        def on_right(event, name=btn_name, c=cat):
+            self.show_reply_popup_panel(event, name, c)
+
+        for w in (btn, label_title, label_sub):
+            w.bind(self.right_click_event, on_right)
+        label_title.bind("<Button-1>", lambda event, tx=text_content: self.copy_to_clipboard(tx))
+        label_sub.bind("<Button-1>", lambda event, tx=text_content: self.copy_to_clipboard(tx))
+        return {"frame": card_frame, "sub": label_sub, "hint": hint_txt}
 
     # --- modes ------------------------------------------------------------
     def toggle_edit_mode(self):
@@ -1769,7 +2023,8 @@ class FastCopyApp:
             (tr("dc_update"), lambda: self.check_for_app_updates(manual_check=True)),
             (tr("dc_import"), self.import_json_config),
             (tr("dc_export"), self.export_json_config),
-        ], self.is_light_mode)
+        ] + ([(tr("dc_close_reset"), self.reset_close_choice)] if "close_action" in self.prefs else []),
+            self.is_light_mode)
 
     def import_json_config(self):
         self.root.attributes("-topmost", False)
@@ -2130,7 +2385,47 @@ class FastCopyApp:
             if callback:
                 callback()
 
-    # --- screen-edge auto hide -------------------------------------------------------
+    # --- window states: shown / tucked at the screen edge / put away --------------------
+    #  "shown"  : a normal window. When its right side touches the outer right edge of its
+    #             screen ("docked"), it tucks away once the mouse has been outside it briefly.
+    #  "tucked" : slid off that edge; only the blue tab stays visible. Resting the mouse on
+    #             the edge (or clicking the tab) slides it back.
+    #  "away"   : put away by [X], the hotkey, or Windows minimizing it. Any way back
+    #             (taskbar button, tray, hotkey) returns it to "shown".
+    # One check runs every 100 ms and moves between these states. Each state is handled
+    # explicitly, so minimizing, Win+D and Alt+Tab can no longer leave it half hidden.
+    def setup_window_states(self):
+        self.mode = "shown"
+        self.is_animating = False
+        self._anim_started = 0.0
+        self._anim_job = None
+        self.visible_pixel = EDGE_TAB_PX
+        self._dock_right = None  # x of the screen edge the window is tucked against
+        self._dock_vrange = None  # (top, bottom) of that screen
+        self._outside_since = None
+        self._peek_since = None
+        self._last_toggle = 0.0
+        self._away_taskbar = False
+        self._last_edge_error = None
+        self.setup_indicator()
+        self._set_tool_window(True)  # no Alt+Tab / Win+Tab entry and no taskbar button while open
+        self.root.after(200, self.apply_titlebar_theme)  # the outer frame exists once mapped
+        self.start_edge_check_loop()
+
+    def apply_titlebar_theme(self):
+        WIN.set_dark_titlebar(WIN.outer_hwnd(self.root), not self.is_light_mode)
+
+    def _set_tool_window(self, on):
+        """Tool window = small title bar, not in Alt+Tab / Win+Tab, no taskbar button.
+        Tk rebuilds the outer frame for this, so the title bar colour is applied again."""
+        if sys.platform != "win32":
+            return
+        try:
+            self.root.attributes("-toolwindow", bool(on))
+            self.root.after(30, self.apply_titlebar_theme)
+        except Exception:
+            log.exception("Could not change the tool-window style")
+
     def setup_indicator(self):
         self.indicator = tk.Toplevel(self.root)
         self.indicator.overrideredirect(True)
@@ -2144,31 +2439,156 @@ class FastCopyApp:
         lbl.pack(fill=ctk.BOTH, expand=True)
         self.indicator.withdraw()
         self.indicator.update_idletasks()
-        lbl.bind("<Enter>", lambda e: self.animate_show())
-        container.bind("<Enter>", lambda e: self.animate_show())
+        # Hovering is handled by the edge check (with the peek delay); a click shows it at once.
+        for w in (container, lbl):
+            w.bind("<Button-1>", lambda e: self.show_from_edge())
+            w.bind(self.right_click_event, self._show_tab_menu)
 
+    def _show_tab_menu(self, event):
+        menu = tk.Menu(self.indicator, tearoff=0)
+        menu.add_command(label=tr("tab_show"), command=self.show_from_edge)
+        menu.add_command(label=tr("tab_away"), command=lambda: self.put_away(taskbar=True))
+        menu.add_separator()
+        menu.add_command(label=tr("tab_quit"), command=self._quit)
+        self._peek_since = None
+        self._modal_count += 1  # don't slide out underneath the open menu
+        try:
+            menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            menu.grab_release()
+            self.root.after(300, self._end_tab_menu)
+
+    def _end_tab_menu(self):
+        self._modal_count = max(0, self._modal_count - 1)
+        self._last_toggle = time.monotonic()
+
+    # --- geometry helpers --------------------------------------------------------------
     def _window_rect(self):
         """Outer window rectangle (title bar and borders included) in screen pixels."""
-        if sys.platform == "win32":
-            try:
-                from ctypes import wintypes
-                user32 = ctypes.WinDLL("user32", use_last_error=True)  # private copy, shared prototypes untouched
-                user32.GetParent.argtypes = [wintypes.HWND]
-                user32.GetParent.restype = wintypes.HWND
-                user32.GetWindowRect.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.RECT)]
-                hwnd = user32.GetParent(self.root.winfo_id()) or self.root.winfo_id()
-                rect = wintypes.RECT()
-                if user32.GetWindowRect(hwnd, ctypes.byref(rect)):
-                    return rect.left, rect.top, rect.right, rect.bottom
-            except Exception:
-                pass
-        # Fallback: client area plus a typical title bar / border allowance
+        rect = WIN.window_rect(WIN.outer_hwnd(self.root))
+        if rect:
+            return rect
         x, y = self.root.winfo_rootx(), self.root.winfo_rooty()
         return x - 8, y - 40, x + self.root.winfo_width() + 8, y + self.root.winfo_height() + 8
 
+    def _screen_areas(self):
+        """(monitor rect, work-area rect) of the screen the window is on."""
+        areas = WIN.monitor_of_window(WIN.outer_hwnd(self.root))
+        if areas:
+            return areas
+        full = (0, 0, self.root.winfo_screenwidth(), self.root.winfo_screenheight())
+        return full, full
+
+    def _dock_edge(self, rect):
+        """x of the screen edge the window is docked against, or None. Only the outer right
+        edge counts: if another screen continues to the right, tucking would just push the
+        window onto that screen."""
+        left, top, right, bottom = rect
+        mon, work = self._screen_areas()
+        edge = work[2]
+        if not (edge - 15 <= right and left < edge):
+            return None
+        if WIN.monitor_at(mon[2] + 2, max(mon[1], min(mon[3] - 1, (top + bottom) // 2))):
+            return None
+        self._dock_vrange = (mon[1], mon[3])
+        return edge
+
+    def _move_outer_left(self, x, y=None):
+        """Move the window so its outer left edge is at x. Position only: the old code also
+        passed the size, which CustomTkinter multiplies by the Windows display scaling, so on
+        screens set above 100 % the window grew every time it slid in or out."""
+        if y is None:
+            y = self._window_rect()[1]
+        tk.Tk.wm_geometry(self.root, f"+{int(x)}+{int(y)}")
+
+    # --- the check ---------------------------------------------------------------------
+    def start_edge_check_loop(self):
+        try:
+            self._edge_check()
+        except Exception as exc:
+            if repr(exc) != self._last_edge_error:  # log each new problem once, not 10x a second
+                self._last_edge_error = repr(exc)
+                log.exception("Edge check failed")
+        try:
+            self.root.after(100, self.start_edge_check_loop)
+        except tk.TclError:
+            pass  # window destroyed
+
+    def _edge_check(self):
+        now = time.monotonic()
+        if self.is_animating:
+            if now - self._anim_started > 2.0:  # safety net: a slide can never block for good
+                self.is_animating = False
+            return
+
+        state = self.root.state()
+        if self.mode == "away":
+            if state in ("normal", "zoomed"):  # brought back from the taskbar, tray or another way
+                self._return_from_away()
+            return
+        if state == "iconic":  # Windows minimized it (Win+M, Win+D, …): treat as put away
+            self.put_away(taskbar=True)
+            return
+        if state == "withdrawn":  # hidden some other way: keep the books straight
+            self.indicator.withdraw()
+            self.mode = "away"
+            return
+
+        rect = self._window_rect()
+        mx, my = self.root.winfo_pointerx(), self.root.winfo_pointery()
+
+        if self.mode == "tucked":
+            self._outside_since = None
+            left = rect[0]
+            if left < self._dock_right - self.visible_pixel - 30:  # moved back on screen some other way
+                self.mode = "shown"
+                self.indicator.withdraw()
+                self._peek_since = None
+                return
+            vtop, vbottom = self._dock_vrange or (-10 ** 6, 10 ** 6)
+            at_edge = self._dock_right - 3 <= mx <= self._dock_right + 1 and vtop <= my < vbottom
+            on_tab = self._pointer_on_tab(mx, my)
+            if (at_edge or on_tab) and self._modal_count == 0 and now - self._last_toggle >= 0.4:
+                if self._peek_since is None:
+                    self._peek_since = now
+                elif now - self._peek_since >= PEEK_DELAY:
+                    self._peek_since = None
+                    self.show_from_edge()
+            else:
+                self._peek_since = None
+            return
+
+        # mode == "shown"
+        self._peek_since = None
+        edge = self._dock_edge(rect)
+        if edge is None:
+            self._outside_since = None
+            return
+        left, top, right, bottom = rect
+        m = EDGE_MARGIN
+        inside = (left - m <= mx <= right + m) and (top - m <= my <= bottom + m)
+        if inside or self._keep_visible() or now - self._last_toggle < 1.0:
+            self._outside_since = None
+            return
+        # The mouse has to stay outside for EDGE_HIDE_DELAY seconds in a row before we tuck.
+        if self._outside_since is None:
+            self._outside_since = now
+        elif now - self._outside_since >= EDGE_HIDE_DELAY:
+            self._outside_since = None
+            self.tuck(edge)
+
+    def _pointer_on_tab(self, mx, my):
+        try:
+            if not self.indicator.winfo_viewable():
+                return False
+            x, y = self.indicator.winfo_rootx(), self.indicator.winfo_rooty()
+            return x <= mx <= x + self.indicator.winfo_width() and y <= my <= y + self.indicator.winfo_height()
+        except tk.TclError:
+            return False
+
     def _keep_visible(self):
-        """True while the window must NOT retract: a dialog is open, a mouse button is held
-        (dragging or selecting), or a search is in use (text in the box, or the box has focus)."""
+        """True while the window must NOT tuck away: a dialog or menu is open, a mouse button
+        is held (dragging or selecting), or a search is in use."""
         if self._modal_count > 0:
             return True
         if self.search_query.strip():  # an active search keeps the window open until it is cleared
@@ -2179,12 +2599,8 @@ class FastCopyApp:
                     return True
         except tk.TclError:
             pass
-        if sys.platform == "win32":
-            try:
-                if ctypes.windll.user32.GetAsyncKeyState(0x01) & 0x8000:  # left button is down
-                    return True
-            except Exception:
-                pass
+        if WIN.left_button_down():
+            return True
         try:
             focused = self.root.focus_get()
             if focused is not None and str(focused).startswith(str(self.search_entry)):
@@ -2193,92 +2609,101 @@ class FastCopyApp:
             pass
         return False
 
-    def _edge_check(self):
-        if self.is_animating or self.root.state() == "withdrawn":
-            self._outside_since = None
-            return
-
-        left, top, right, bottom = self._window_rect()
-        mx, my = self.root.winfo_pointerx(), self.root.winfo_pointery()
-        now = time.monotonic()
-
-        if self.is_hidden:
-            self._outside_since = None
-            if now - self._last_toggle < 0.5:  # let the slide settle before reacting
-                return
-            if mx >= self.screen_width - 2:
-                self.animate_show()
-            elif left < self.screen_width - (right - left) - 20:
-                self.is_hidden = False
-                self.indicator.withdraw()
-            return
-
-        if right < self.screen_width - 15:  # window is not docked at the right edge
-            self._outside_since = None
-            return
-
-        m = EDGE_MARGIN
-        inside = (left - m <= mx <= right + m) and (top - m <= my <= bottom + m)
-        if inside or self._keep_visible() or now - self._last_toggle < 1.0:
-            self._outside_since = None
-            return
-
-        # The mouse has to stay outside for EDGE_HIDE_DELAY seconds in a row before we retract.
-        if self._outside_since is None:
-            self._outside_since = now
-        elif now - self._outside_since >= EDGE_HIDE_DELAY:
-            self._outside_since = None
-            self.animate_hide()
-
-    def start_edge_check_loop(self):
-        try:
-            self._edge_check()
-        except Exception:
-            pass
-        self.root.after(150, self.start_edge_check_loop)
-
-    def _slide_window(self, target_x, on_done):
+    # --- moves -------------------------------------------------------------------------
+    def _slide_to(self, target_x, on_done):
+        """Ease-out slide of the whole window to an outer-left x, then on_done()."""
         self.is_animating = True
-        win_y = self.root.winfo_y()
-        start_x = self.root.winfo_x()
-        steps = 10
-        dx = (target_x - start_x) / steps
+        self._anim_started = time.monotonic()
+        left, top = self._window_rect()[:2]
+        start_x, steps = left, 9
 
-        def step(count):
-            if count < steps:
-                curr_x = int(start_x + dx * (count + 1))
-                self.root.geometry(f"{self.root.winfo_width()}x{self.root.winfo_height()}+{curr_x}+{win_y}")
-                self.root.after(15, lambda: step(count + 1))
-            else:
-                self.is_animating = False
-                on_done(win_y)
+        def step(i):
+            try:
+                t = i / steps
+                eased = 1 - (1 - t) ** 3
+                self._move_outer_left(start_x + (target_x - start_x) * eased, top)
+                if i < steps:
+                    self._anim_job = self.root.after(12, lambda: step(i + 1))
+                    return
+            except Exception:
+                log.exception("Slide failed")
+            self.is_animating = False
+            self._anim_job = None
+            on_done()
 
-        step(0)
+        step(1)
 
-    def animate_hide(self):
-        if self.is_animating:
+    def tuck(self, edge):
+        if self.is_animating or self.mode != "shown":
             return
+        self._dock_right = edge
+        self._slide_to(edge - self.visible_pixel, self._on_tucked)
 
-        def done(win_y):
-            self.is_hidden = True
-            self._last_toggle = time.monotonic()
-            self.indicator.geometry(
-                f"{self.visible_pixel}x120+{self.screen_width - self.visible_pixel}"
-                f"+{win_y + int(self.root.winfo_height() / 2) - 60}")
-            self.indicator.deiconify()
+    def _on_tucked(self):
+        self.mode = "tucked"
+        self._last_toggle = time.monotonic()
+        top, bottom = self._window_rect()[1], self._window_rect()[3]
+        vtop, vbottom = self._dock_vrange or (top, bottom)
+        y = max(vtop, min(vbottom - 120, (top + bottom) // 2 - 60))
+        self.indicator.geometry(f"{self.visible_pixel}x120+{self._dock_right - self.visible_pixel}+{y}")
+        self.indicator.deiconify()
+        self.indicator.lift()
 
-        self._slide_window(self.screen_width - self.visible_pixel, done)
-
-    def animate_show(self):
-        if self.is_animating:
+    def show_from_edge(self):
+        if self.is_animating or self.mode != "tucked":
             return
         self.indicator.withdraw()
+        left, top, right, bottom = self._window_rect()
 
-        def done(_win_y):
-            self.is_hidden = False
+        def done():
+            self.mode = "shown"
             self._last_toggle = time.monotonic()
+            self._outside_since = None
+            try:
+                self.root.lift()
+                self.toggle_on_top()
+            except tk.TclError:
+                pass
 
-        self._slide_window(self.screen_width - self.root.winfo_width(), done)
+        self._slide_to(self._dock_right - (right - left), done)
+
+    def put_away(self, taskbar=True):
+        """Hide the window. taskbar=True: minimized with a taskbar button (plus the tray icon);
+        False: tray icon only."""
+        if self._anim_job is not None:
+            try:
+                self.root.after_cancel(self._anim_job)
+            except Exception:
+                pass
+            self._anim_job = None
+            self.is_animating = False
+        if self.mode == "tucked" and self._dock_right is not None:
+            left, _t, right, _b = self._window_rect()
+            self._move_outer_left(self._dock_right - (right - left))  # come back fully on screen
+        self.indicator.withdraw()
+        self._peek_since = self._outside_since = None
+        self.mode = "away"
+        self._away_taskbar = bool(taskbar) and sys.platform == "win32"
+        if self._away_taskbar:
+            if self.root.state() != "iconic":
+                self.root.withdraw()  # change the style while hidden, so nothing flickers
+            self._set_tool_window(False)  # an ordinary window gets a taskbar button again
+            self.root.iconify()
+        else:
+            self.root.withdraw()
+
+    def _return_from_away(self):
+        self.mode = "shown"
+        self._last_toggle = time.monotonic()
+        if self._away_taskbar:
+            self._away_taskbar = False
+            self._set_tool_window(True)  # out of the taskbar and Alt+Tab again
+        try:
+            self.toggle_on_top()
+            self.root.lift()
+            self.search_entry.focus_set()
+        except Exception:
+            pass
 
     # --- colours -------------------------------------------------------------------
     def _apply_chosen_color(self, config, color_code):
@@ -2321,6 +2746,9 @@ if __name__ == "__main__":
     if not check_single_instance():
         sys.exit(0)
 
+    # CustomTkinter recolours the Windows title bar by hiding and re-showing the whole window,
+    # which made a theme switch look like the app closing and reopening. We repaint it ourselves.
+    ctk.CTk._deactivate_windows_window_header_manipulation = True
     root = ctk.CTk()
     app = FastCopyApp(root)
     root.mainloop()
