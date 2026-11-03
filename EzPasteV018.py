@@ -73,6 +73,37 @@ STRINGS = {
     "tab_show": ("Show EzPaste", "显示 EzPaste"),
     "tab_away": ("Put away", "收起"),
     "tab_quit": ("Quit (Ctrl+Q)", "退出 (Ctrl+Q)"),
+    # --- quick start ---
+    "qs_title": ("EzPaste Quick Start", "EzPaste 快速上手"),
+    "qs_heading": ("🚀 EzPaste in one minute", "🚀 一分钟上手 EzPaste"),
+    "qs_btn": ("🚀 Quick Start", "🚀 快速上手"),
+    "qs_reopen": ("You can open this again from ❓ Manual.", "以后可以在「❓ 说明」里再次打开。"),
+    "qs_copy_h": ("📋 Click a card to copy", "📋 点击卡片即复制"),
+    "qs_copy_t": ("Click any reply card and its text is on your clipboard; paste it anywhere. "
+                  "Right-click a card to edit, recolour, rename or delete it.",
+                  "点击任意回复卡片，内容就会复制到剪贴板，直接粘贴即可。右键卡片可编辑、改颜色、重命名或删除。"),
+    "qs_search_h": ("🔍 Search everything", "🔍 全局搜索"),
+    "qs_search_t": ("Type in the box at the bottom to find a reply by name or text in every category. Esc clears it.",
+                    "在底部搜索框输入，可在所有分类中按名称或内容查找回复，按 Esc 清空。"),
+    "qs_edge_h": ("⚡ Tuck it at the screen edge", "⚡ 贴边收起"),
+    "qs_edge_t": ("Drag the window to the right edge of your screen. When the mouse leaves, it slides away "
+                  "and leaves a blue tab. Rest the mouse on the edge or click the tab to bring it back; "
+                  "right-click the tab for Show / Put away / Quit.",
+                  "把窗口拖到屏幕右边缘，鼠标离开后会自动滑走，只留下蓝色标签。鼠标停在边缘或点击标签即可展开；"
+                  "右键标签可选择 显示 / 收起 / 退出。"),
+    "qs_close_h": ("✕ Put away or quit", "✕ 收起或退出"),
+    "qs_close_t": ("[X] asks whether to put EzPaste away (taskbar + tray) or quit; tick 'Remember my choice' "
+                   "to skip the question. Ctrl+Q quits at once.{hotkey}",
+                   "点击 [X] 会询问收起（任务栏 + 托盘）还是退出；勾选“记住我的选择”后不再询问。按 Ctrl+Q 立即退出。{hotkey}"),
+    "qs_close_hotkey": (" {hotkey} shows or hides it from anywhere.", "在任何地方按 {hotkey} 可显示或隐藏窗口。"),
+    "qs_cat_h": ("📂 Personal or shared categories", "📂 个人或共享分类"),
+    "qs_cat_t": ("'+ Category' asks where a category lives: Personal stays on this PC only; Public is shared "
+                 "with the team through ⚙️ Data Center's cloud sync. '+ Reply Block' adds a card.",
+                 "「+ 分类」会询问存放位置：个人分类只保存在本机；公共分类通过「⚙️ 数据中心」的云端同步与团队共享。"
+                 "「+ 回复块」用于添加卡片。"),
+    "qs_look_h": ("🌗 Theme and language", "🌗 主题与语言"),
+    "qs_look_t": ("The buttons at the bottom right switch light / dark and English / 中文.",
+                  "右下角按钮可切换浅色 / 深色模式和 English / 中文。"),
     # --- generic ---
     "success": ("Success", "成功"),
     "error": ("Error", "错误"),
@@ -268,7 +299,8 @@ STRINGS = {
         " - Slides out only when the mouse rests on the edge for a moment; smoother slide; docks only on an outer screen edge (multi-monitor).\n"
         " - Out of Alt+Tab / Win+Tab and the taskbar while open; a taskbar button appears while it is put away.\n"
         " - [X] asks: put away or quit, with 'Remember my choice'. Ctrl+Q quits; right-click the blue tab for a menu.\n"
-        " - Faster reply list: cards are reused instead of rebuilt on every search, category switch or resize.\n\n"
+        " - Faster reply list: cards are reused instead of rebuilt on every search, category switch or resize.\n"
+        " - New Quick Start guide: shown once on first run, reopen it from ❓ Manual.\n\n"
         "【Version: v0.1.7】\n"
         " - New Update now button: EzPaste downloads the installer, verifies its SHA-256 hash, installs silently and reopens itself.\n"
         " - Fixed the window retracting to the screen edge too easily, even with the mouse inside it.\n"
@@ -298,7 +330,8 @@ STRINGS = {
         " - 鼠标需在边缘停留片刻才会展开；滑动更顺滑；多显示器时只在最外侧边缘贴边。\n"
         " - 窗口打开时不出现在 Alt+Tab / Win+Tab 和任务栏；收起时显示任务栏按钮。\n"
         " - 点击 [X] 可选择收起或退出，并可“记住我的选择”。Ctrl+Q 退出；右键蓝色标签有菜单。\n"
-        " - 回复列表更快：搜索、切换分类、调整大小时复用卡片，不再全部重建。\n\n"
+        " - 回复列表更快：搜索、切换分类、调整大小时复用卡片，不再全部重建。\n"
+        " - 新增“快速上手”引导：首次打开时显示一次，之后可在「❓ 说明」中再次打开。\n\n"
         "【版本：v0.1.7】\n"
         " - 新增“立即更新”按钮：自动下载安装程序，校验 SHA-256 哈希，静默安装并自动重新打开。\n"
         " - 修复窗口贴边后过于灵敏、鼠标仍在窗口内也会收起的问题。\n"
@@ -964,6 +997,38 @@ class ScopeDialog(ThemedDialog):
         self.wait_window()
 
 
+class QuickStartDialog(ThemedDialog):
+    """Short first-run guide (like the OMS Toolkit's 快速上手). Not blocking; reopen from ❓ Manual."""
+
+    SECTIONS = ("copy", "search", "edge", "close", "cat", "look")
+
+    def __init__(self, parent, is_light, hotkey_text=""):
+        super().__init__(parent, tr("qs_title"), 540, 520, is_light)
+        t = self.t
+        ctk.CTkLabel(self, text=tr("qs_heading"), font=("Microsoft YaHei", 15, "bold"),
+                     text_color=t["text"]).pack(pady=(14, 6))
+        body = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        body.pack(fill=ctk.BOTH, expand=True, padx=16, pady=(0, 4))
+        for key in self.SECTIONS:
+            card = ctk.CTkFrame(body, fg_color=t["card"], corner_radius=10, border_width=1, border_color=t["border"])
+            card.pack(fill=ctk.X, pady=5, padx=2)
+            ctk.CTkLabel(card, text=tr(f"qs_{key}_h"), font=("Microsoft YaHei", 12, "bold"), text_color=t["text"],
+                         anchor="w", justify="left").pack(fill=ctk.X, padx=12, pady=(8, 2))
+            text = tr(f"qs_{key}_t", hotkey=hotkey_text) if key == "close" else tr(f"qs_{key}_t")
+            ctk.CTkLabel(card, text=text, font=("Microsoft YaHei", 11), text_color=t["text"], anchor="w",
+                         justify="left", wraplength=450).pack(fill=ctk.X, padx=12, pady=(0, 9))
+        bottom = ctk.CTkFrame(self, fg_color="transparent")
+        bottom.pack(fill=ctk.X, side=ctk.BOTTOM, padx=18, pady=(4, 12))
+        ctk.CTkLabel(bottom, text=tr("qs_reopen"), font=("Microsoft YaHei", 10), text_color=t["muted"]
+                     ).pack(side=ctk.LEFT)
+        ok = ctk.CTkButton(bottom, text=tr("got_it"), width=120, height=32, font=("Microsoft YaHei", 11, "bold"),
+                           fg_color=t["primary"], command=self.finish)
+        ok.pack(side=ctk.RIGHT)
+        self.bind("<Escape>", lambda e: self.finish())
+        self.bind("<Return>", lambda e: self.finish())
+        ok.focus_set()
+
+
 class CloseChoiceDialog(ThemedDialog):
     """Asked when [X] is clicked. Result: ("away" | "quit", remember: bool) or None (cancelled)."""
 
@@ -1106,6 +1171,8 @@ class FastCopyApp:
         self.root.after(100, self._poll_ui_queue)
         self.root.after(500, lambda: self.sync_pull_from_cloud(silent=True))
         self.root.after(2000, lambda: self.check_for_app_updates(manual_check=False))
+        if not self.prefs.get("quickstart_seen"):
+            self.root.after(900, self.show_quick_start_first_run)
 
     # --- small shared helpers -------------------------------------------
     @property
@@ -2311,9 +2378,26 @@ class FastCopyApp:
         ctk.CTkButton(bot_frame, text=tr("changelog_btn"), width=110, height=32, font=("Microsoft YaHei", 11),
                       fg_color="#0891b2", hover_color="#0e7490",
                       command=self.open_change_history_dialog).pack(side=ctk.LEFT)
+        ctk.CTkButton(bot_frame, text=tr("qs_btn"), width=110, height=32, font=("Microsoft YaHei", 11),
+                      fg_color="#6366f1", hover_color="#4f46e5",
+                      command=self.open_quick_start).pack(side=ctk.LEFT, padx=(8, 0))
         ctk.CTkButton(bot_frame, text=tr("got_it"), width=120, height=32,
                       font=("Microsoft YaHei", 11, "bold"), fg_color=t["primary"],
                       command=close).pack(side=ctk.RIGHT)
+
+    def show_quick_start_first_run(self):
+        if self.prefs.get("quickstart_seen") or self.mode != "shown":
+            return
+        self.prefs["quickstart_seen"] = True  # once only, even if it is closed with [X]
+        self.save_user_preferences()
+        self.open_quick_start()
+
+    def open_quick_start(self):
+        hotkey = tr("qs_close_hotkey", hotkey=HOTKEY.upper()) if keyboard is not None else ""
+        self.root.attributes("-topmost", False)
+        dlg = QuickStartDialog(self.root, self.is_light_mode, hotkey)
+        dlg.bind("<Destroy>", lambda e: self.toggle_on_top() if e.widget is dlg else None, add="+")
+        return dlg
 
     def open_change_history_dialog(self):
         win = ThemedDialog(self.root, tr("changelog_win_title", v=self.version_num), 500, 380, self.is_light_mode)
