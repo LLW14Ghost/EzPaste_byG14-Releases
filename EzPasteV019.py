@@ -434,6 +434,28 @@ PREFS_FILE = BASE_DIR / "user_prefs.json"
 USAGE_FILE = BASE_DIR / "usage_stats.json"  # local-only counters for Frequent; never synced or exported
 LOG_FILE = BASE_DIR / "ezpaste.log"
 
+
+def _find_icon():
+    """EzPaste.ico: bundled into the exe by the build, or next to the script while developing."""
+    bundle = Path(getattr(sys, "_MEIPASS", BASE_DIR))
+    for path in (bundle / "EzPaste.ico", BASE_DIR / "EzPaste.ico", BASE_DIR / "installer" / "EzPaste.ico"):
+        if path.is_file():
+            return path
+    return None
+
+
+APP_ICON = _find_icon()
+
+
+def apply_window_icon(window):
+    """Use the EzPaste icon for a window (Windows only; harmless if the file is missing)."""
+    if APP_ICON is None or sys.platform != "win32":
+        return
+    try:
+        window.iconbitmap(str(APP_ICON))
+    except Exception:
+        pass
+
 KEYRING_SERVICE = "EzPaste"
 KEYRING_USER = "github_pat"
 
@@ -893,6 +915,8 @@ class ThemedDialog(ctk.CTkToplevel):
         self.is_light = is_light
         self.result = None
         self.title(title)
+        # CustomTkinter puts its own icon on new windows after ~200 ms; ours goes on after that
+        self.after(300, lambda: apply_window_icon(self))
         self.resizable(False, False)
         self.attributes("-topmost", True)
         center_window_on_parent(self, parent, width, height)
@@ -1334,6 +1358,13 @@ class FastCopyApp:
 
     # --- tray / hotkey / lifecycle ----------------------------------------
     def create_tray_image(self):
+        if APP_ICON is not None:
+            try:
+                icon = Image.open(APP_ICON)
+                icon.size = (64, 64)  # pick the 64 px frame of the .ico
+                return icon.convert("RGBA")
+            except Exception:
+                log.exception("Could not load the tray icon")
         image = Image.new("RGB", (64, 64), color="#1e222b")
         dc = ImageDraw.Draw(image)
         dc.rectangle([16, 16, 48, 48], fill="#3b82f6")
@@ -3146,5 +3177,6 @@ if __name__ == "__main__":
     # which made a theme switch look like the app closing and reopening. We repaint it ourselves.
     ctk.CTk._deactivate_windows_window_header_manipulation = True
     root = ctk.CTk()
+    apply_window_icon(root)
     app = FastCopyApp(root)
     root.mainloop()

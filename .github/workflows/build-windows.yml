@@ -1,18 +1,27 @@
-# Builds EzPaste on a Windows machine at GitHub, so no local Python setup is needed.
-# Runs when an EzPasteV*.py file changes on main, or by hand (Actions tab → Build EzPaste (Windows) → Run workflow).
-# Result: an "EzPaste-<version>" download on the run's page with EzPaste.exe (portable: put it in the
-# folder with your data files) and, once installer/EzPaste.iss exists, EzPaste_Setup_<version>.exe.
-# Nothing is published: making a release stays a manual step.
+# Builds EzPaste on a Windows machine at GitHub and prepares the release.
+#
+# Runs when EzPasteV*.py, installer/ or release-notes/ change on main, or by hand
+# (Actions tab → "Build EzPaste (Windows)" → Run workflow).
+#
+# Every run: EzPaste_Setup_v<x>.exe + the portable EzPaste folder as a download on the run's page.
+# New version (APP_VERSION in the newest EzPasteV*.py has no published release yet):
+#   also a DRAFT release v<x> with the installer and release-notes/v<x>.md as its text.
+#   Drafts are invisible to the in-app updater; colleagues get it only after you click Publish.
+#   Pushing again before publishing replaces the draft. Once published, a version is never touched again.
 name: Build EzPaste (Windows)
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["EzPasteV*.py", "installer/**", ".github/workflows/build-windows.yml"]
+    paths: ["EzPasteV*.py", "installer/**", "release-notes/**", ".github/workflows/build-windows.yml"]
 
 permissions:
-  contents: read
+  contents: write  # needed to create the draft release
+
+concurrency:
+  group: build-ezpaste
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -24,49 +33,63 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Find the newest EzPasteV*.py and its version
+      - name: Find the newest EzPasteV*.py, its version and its release
         id: src
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $f = Get-ChildItem EzPasteV*.py | Sort-Object Name | Select-Object -Last 1
-          $v = (Select-String -Path $f -Pattern '^APP_VERSION = "(v[0-9.]+)"').Matches[0].Groups[1].Value
+          $tag = (Select-String -Path $f -Pattern '^APP_VERSION = "(v[0-9.]+)"').Matches[0].Groups[1].Value
+          if (-not $tag) { throw "No APP_VERSION line in $($f.Name)" }
+          $state = "none"
+          $json = gh release view $tag --json isDraft 2>$null
+          if ($LASTEXITCODE -eq 0) { $state = if (($json | ConvertFrom-Json).isDraft) { "draft" } else { "published" } }
+          $global:LASTEXITCODE = 0
           "file=$($f.Name)" >> $env:GITHUB_OUTPUT
-          "version=$v" >> $env:GITHUB_OUTPUT
-          Write-Host "Building $($f.Name) ($v)"
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "number=$($tag.TrimStart('v'))" >> $env:GITHUB_OUTPUT
+          "state=$state" >> $env:GITHUB_OUTPUT
+          Write-Host "Building $($f.Name) ($tag); release state: $state"
 
       - name: Install packages
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller customtkinter pystray pillow certifi keyring keyboard
 
-      - name: Build EzPaste.exe
-        shell: pwsh
-        run: |
-          $icon = @()
-          if (Test-Path installer/EzPaste.ico) { $icon = @("--icon", "installer/EzPaste.ico") }
-          pyinstaller --noconfirm --onefile --windowed --name EzPaste --collect-data customtkinter @icon ${{ steps.src.outputs.file }}
+      - name: Build the app (PyInstaller folder, same layout as before)
+        run: >
+          pyinstaller --noconfirm --onedir --windowed --name EzPaste
+          --icon installer/EzPaste.ico --add-data "installer/EzPaste.ico;."
+          --collect-data customtkinter ${{ steps.src.outputs.file }}
 
-      - name: Build the installer (when installer/EzPaste.iss exists)
+      - name: Build the installer
         shell: pwsh
         run: |
-          if (Test-Path installer/EzPaste.iss) {
-            $ver = "${{ steps.src.outputs.version }}".TrimStart("v")
-            & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$ver" "/DSourceExe=$PWD\dist\EzPaste.exe" "/O$PWD\dist" installer/EzPaste.iss
-          } else {
-            Write-Host "installer/EzPaste.iss not in the repo yet: skipping the installer"
-          }
-
-      - name: SHA-256 of each file
-        shell: pwsh
-        run: |
-          Get-ChildItem dist/*.exe | ForEach-Object {
-            (Get-FileHash $_ -Algorithm SHA256).Hash.ToLower() + "  " + $_.Name | Out-File -Encoding ascii "$($_.FullName).sha256"
-          }
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DMyAppVersion=${{ steps.src.outputs.number }}" "/DDistDir=$PWD\dist\EzPaste" "/O$PWD\out" installer\EzPaste.iss
+          if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
+          $setup = "out\EzPaste_Setup_${{ steps.src.outputs.tag }}.exe"
+          if (-not (Test-Path $setup)) { throw "$setup was not created" }
+          Get-FileHash $setup -Algorithm SHA256 | Format-List
 
       - uses: actions/upload-artifact@v4
         with:
-          name: EzPaste-${{ steps.src.outputs.version }}
+          name: EzPaste-${{ steps.src.outputs.tag }}
           path: |
-            dist/*.exe
-            dist/*.sha256
+            out/*.exe
+            dist/EzPaste/
           retention-days: 30
+
+      - name: Create / refresh the draft release
+        if: steps.src.outputs.state != 'published'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.src.outputs.tag }}"
+          $notes = "release-notes/$tag.md"
+          if (-not (Test-Path $notes)) { throw "Add $notes (the release text) and push again." }
+          if ("${{ steps.src.outputs.state }}" -eq "draft") { gh release delete $tag --yes }
+          gh release create $tag "out\EzPaste_Setup_$tag.exe" --draft --title "EzPaste $tag" --notes-file $notes --target $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw "Could not create the draft release" }
+          Write-Host "Draft release $tag is ready. Publish it on GitHub when you are happy with it."
